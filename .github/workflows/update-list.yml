@@ -1,0 +1,77 @@
+name: Update filtered list
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-list.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Top 1000 list
+        shell: python
+        run: |
+          import re
+          import urllib.request
+          from datetime import date
+
+          source = 'https://raw.githubusercontent.com/Zalexanninev15/NoADS_RU/main/ads_list.txt'
+          text = urllib.request.urlopen(source, timeout=60).read().decode('utf-8', errors='replace')
+
+          domain_rule = re.compile(r'^\|\|[A-Za-z0-9._-]+\^$')
+          priority = (
+              'ad', 'ads', 'advert', 'analytics', 'metric', 'track', 'tracker',
+              'tracking', 'counter', 'pixel', 'telemetry', 'beacon', 'stat',
+              'doubleclick', 'googlesyndication', 'googleadservices', 'adservice',
+              'webvisor', 'metrika', 'clarity', 'mathtag', 'yield', 'rtb'
+          )
+
+          seen = set()
+          preferred = []
+          fallback = []
+
+          for raw in text.splitlines():
+              rule = raw.strip()
+              if not domain_rule.fullmatch(rule) or rule in seen:
+                  continue
+              seen.add(rule)
+              domain = rule[2:-1].lower()
+              if any(word in domain for word in priority):
+                  preferred.append(rule)
+              else:
+                  fallback.append(rule)
+
+          rules = (preferred + fallback)[:1000]
+          if len(rules) != 1000:
+              raise RuntimeError(f'Expected 1000 rules, got {len(rules)}')
+
+          header = [
+              '! Title: NoADS_RU Top 1000',
+              f'! Source: {source}',
+              f'! Generated: {date.today().isoformat()}',
+              '! Rules: 1000',
+              '! Selection: universal advertising and tracking domain rules',
+              '! This is a curated subset, not an official edition of NoADS_RU',
+              '',
+          ]
+          with open('ads_list.txt', 'w', encoding='utf-8', newline='\n') as f:
+              f.write('\n'.join(header + rules) + '\n')
+
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ads_list.txt
+          git diff --cached --quiet && exit 0
+          git commit -m 'chore: update top 1000 ad rules'
+          git push
