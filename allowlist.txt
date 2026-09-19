@@ -14,3 +14,7 @@ pht.space
 
 # telderi.ru: blocked by 1Hosts (Lite) as ||telderi.ru^.
 telderi.ru
+
+# Yandex Direct advertiser dashboard: blocked as an ad domain, though it is
+# the owner's work tool. Ad serving lives on other hosts and stays blocked.
+direct.yandex.ru

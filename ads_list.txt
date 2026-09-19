@@ -2,12 +2,13 @@
 ! Source: https://raw.githubusercontent.com/Zalexanninev15/NoADS_RU/main/ads_list.txt
 ! Generated: 2026-09-19
 ! Rules: 1000
-! Exceptions: 2 (from allowlist.txt)
+! Exceptions: 3 (from allowlist.txt)
 ! Selection: universal advertising and tracking domain rules
 ! This is a curated subset, not an official edition of NoADS_RU
 
 @@||pht.space^
 @@||telderi.ru^
+@@||direct.yandex.ru^
 ||2stat.net^
 ||adfstat.yandex.ru^
 ||adlog.com.com^
@@ -1005,4 +1006,3 @@
 ||road-vignette.shop^
 ||roadkultur.de^
 ||roadtrip-camping.com^
-||rockportbootsireland.com^
