@@ -1,0 +1,16 @@
+# Domains that must never be blocked on this AdGuard DNS server.
+#
+# The account has a limit of 1000 rules in total, and this list uses all of
+# them, so the dashboard's own "user rules" have no room left. Exceptions live
+# here instead: each one is written as @@||domain^ at the top of ads_list.txt,
+# and AdGuard applies an exception from any enabled list over every other list.
+# Every line here takes one slot from the ad rules, so the total stays at 1000.
+#
+# One domain per line; the rule covers its subdomains too.
+
+# Fizikl app: blocked by HaGeZi's Normal Blocklist as ||metrics.pht.space^,
+# and the app does not start without it.
+pht.space
+
+# telderi.ru: blocked by 1Hosts (Lite) as ||telderi.ru^.
+telderi.ru

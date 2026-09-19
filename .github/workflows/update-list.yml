@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/update-list.yml'
+      - 'allowlist.txt'
 
 permissions:
   contents: write
@@ -51,7 +52,42 @@ jobs:
               else:
                   fallback.append(rule)
 
-          rules = (preferred + fallback)[:1000]
+          # The account allows 1000 rules in total and this list is all of them,
+          # so exceptions have to come out of the same budget: each allowlisted
+          # domain costs one ad rule. AdGuard honours an @@ exception from any
+          # enabled list over blocks in the others.
+          allowed = []
+          for raw in open('allowlist.txt', encoding='utf-8'):
+              domain = raw.split('#', 1)[0].strip().lower()
+              if domain and domain not in allowed:
+                  if not re.fullmatch(r'[a-z0-9.-]+\.[a-z]{2,}', domain):
+                      raise RuntimeError(f'Not a domain in allowlist.txt: {domain!r}')
+                  allowed.append(domain)
+
+          def covered(rule):
+              domain = rule[2:-1].lower()
+              return any(domain == a or domain.endswith('.' + a) for a in allowed)
+
+          # NoADS_RU turned into a browser filter on 2026-09-16: most of it is
+          # now cosmetic rules, image paths and $modifiers, and only about two
+          # hundred lines are still plain domain rules a DNS server can use.
+          # Rebuilding from that would swap out a large part of a list that
+          # works, so the rules already here come first and the source only
+          # fills the slots they leave free. The list never shrinks, and
+          # adding an exception displaces exactly one rule.
+          previous = []
+          try:
+              for raw in open('ads_list.txt', encoding='utf-8'):
+                  rule = raw.strip()
+                  if domain_rule.fullmatch(rule) and rule not in previous:
+                      previous.append(rule)
+          except FileNotFoundError:
+              pass
+
+          exceptions = [f'@@||{domain}^' for domain in allowed]
+          fresh = [r for r in preferred + fallback if r not in previous]
+          blocks = [r for r in previous + fresh if not covered(r)]
+          rules = exceptions + blocks[:1000 - len(exceptions)]
           if len(rules) != 1000:
               raise RuntimeError(f'Expected 1000 rules, got {len(rules)}')
 
@@ -60,6 +96,7 @@ jobs:
               f'! Source: {source}',
               f'! Generated: {date.today().isoformat()}',
               '! Rules: 1000',
+              f'! Exceptions: {len(exceptions)} (from allowlist.txt)',
               '! Selection: universal advertising and tracking domain rules',
               '! This is a curated subset, not an official edition of NoADS_RU',
               '',
