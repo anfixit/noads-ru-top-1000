@@ -1,6 +1,6 @@
 ! Title: NoADS_RU Top 1000
 ! Source: https://raw.githubusercontent.com/Zalexanninev15/NoADS_RU/main/ads_list.txt
-! Generated: 2026-09-19
+! Generated: 2026-09-21
 ! Rules: 1000
 ! Exceptions: 3 (from allowlist.txt)
 ! Selection: universal advertising and tracking domain rules
